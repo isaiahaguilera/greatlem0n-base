@@ -12,6 +12,18 @@ set -ouex pipefail
 # this installs a package from fedora repos
 dnf5 install -y tmux 
 
+# Install Shell tools that must always exist
+SHELL_TOOLS=(
+    eza                     # Modern replacement for ls
+    starship                # Cross-shell prompt
+    zsh-autosuggestions     # Fish-like autosuggestions for zsh
+    zsh-syntax-highlighting # Fish-like syntax highlighting for zsh
+    bat                     # Cat clone with syntax highlighting
+)
+
+echo "Installing ${#SHELL_TOOLS[@]} shell tools..."
+dnf5 -y install "${SHELL_TOOLS[@]}"
+
 # Install VSCode
 tee /etc/yum.repos.d/vscode.repo <<'EOF'
 [code]
