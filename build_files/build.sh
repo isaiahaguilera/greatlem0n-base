@@ -68,9 +68,6 @@ COCKPIT_PACKAGES=(
 echo "Installing ${#COCKPIT_PACKAGES[@]} Cockpit packages..."
 dnf5 -y install "${COCKPIT_PACKAGES[@]}"
 
-# Enable Cockpit socket (starts on-demand at port 9090)
-systemctl enable cockpit.socket
-
 # Use a COPR Example:
 #
 # dnf5 -y copr enable ublue-os/staging
