@@ -28,6 +28,7 @@ dnf -y install --enablerepo=code code
 # Cockpit - Web-based system management
 COCKPIT_PACKAGES=(
     # Core Cockpit modules
+    cockpit-ws              # Provides cockpit.socket
     cockpit-bridge          # Core service - REQUIRED
     cockpit-system          # System info and management
     cockpit-ostree        # OSTree deployment management
