@@ -25,6 +25,52 @@ EOF
 sed -i "s/enabled=.*/enabled=0/g" /etc/yum.repos.d/vscode.repo
 dnf -y install --enablerepo=code code
 
+# Cockpit - Web-based system management
+COCKPIT_PACKAGES=(
+    # Core Cockpit modules
+    cockpit-bridge          # Core service - REQUIRED
+    cockpit-system          # System info and management
+    cockpit-ostree        # OSTree deployment management
+    cockpit-podman        # Container management
+    cockpit-storaged      # Disk and storage management
+    cockpit-networkmanager # Network configuration
+    cockpit-selinux       # SELinux policy management
+    
+    
+    # Cockpit dependencies
+    dbus-x11                # Required for Cockpit
+    udica                 # SELinux policy generator for containers
+    
+    # Podman tools (work standalone or with cockpit-podman)
+    # podman-compose        # Docker Compose compatibility
+    # podman-machine        # Podman VM management
+    # podman-tui            # Podman terminal UI
+    
+    # VM stack (only needed for cockpit-machines)
+    # cockpit-machines      # VM management (requires VM stack below)
+    # edk2-ovmf             # UEFI firmware for VMs
+    # libvirt               # Virtualization API
+    # libvirt-nss           # Name resolution for libvirt
+    # qemu                  # Hypervisor
+    # qemu-char-spice
+    # qemu-device-display-virtio-gpu
+    # qemu-device-display-virtio-vga
+    # qemu-device-usb-redirect
+    # qemu-img              # Disk image utility
+    # qemu-system-x86-core  # x86 emulation
+    # qemu-user-binfmt
+    # qemu-user-static
+    # virt-manager          # VM manager GUI
+    # virt-v2v              # VM conversion
+    # virt-viewer           # VM console viewer
+)
+
+echo "Installing ${#COCKPIT_PACKAGES[@]} Cockpit packages..."
+dnf5 -y install "${COCKPIT_PACKAGES[@]}"
+
+# Enable Cockpit socket (starts on-demand at port 9090)
+systemctl enable cockpit.socket
+
 # Use a COPR Example:
 #
 # dnf5 -y copr enable ublue-os/staging
