@@ -1,0 +1,60 @@
+// Polkit Rules for Remote Desktop (RDP) Usability
+// 
+// WHAT THIS FIXES:
+// - Eliminates constant authentication prompts when connected via RDP
+// - Allows wheel group users to perform administrative tasks over RDP without re-entering password
+// - Removes login screen prompt: "Authentication is required to update information about software"
+//
+// WHY IT'S NEEDED:
+// Default polkit rules require subject.local == true, which evaluates to false for RDP sessions.
+// This causes password prompts for every administrative action (WiFi, Bluetooth, Flatpak, settings)
+// even though the user already authenticated via RDP and is in the wheel group.
+// 
+// SECURITY MODEL:
+// - RDP authentication already verified user identity (username + password)
+// - User is in wheel group (already has admin privileges)
+// - Active session requirement prevents background processes from acting
+// - No meaningful security difference between local and remote sessions for single-admin system
+//
+// THREE RULE TYPES:
+// 1. Flatpak metadata updates (any user, even inactive sessions)
+// 2. RDP login helpers (wheel only, fires before active session exists)
+// 3. All other admin actions (wheel only, requires active session)
+
+// RULE 1: Flatpak Metadata Updates
+// Allows any user to update Flatpak metadata (software catalog info) even without active session
+// Security: Very low risk - metadata updates are read-only, cryptographically signed catalog refreshes
+// Benefit: Eliminates "Authentication required to update information about software" at login screen
+polkit.addRule(function(action, subject) {
+    if (action.id === "org.freedesktop.Flatpak.metadata-update" ||
+        action.id === "org.freedesktop.Flatpak.appstream-update" ||
+        action.id === "org.freedesktop.Flatpak.update-remote") {
+        return polkit.Result.YES;
+    }
+    return polkit.Result.NOT_HANDLED;
+});
+
+// RULE 2: RDP Login Helpers
+// Allows wheel users to use RDP login helpers during connection establishment
+// Security: Wheel group only, fires during RDP connection process before active session exists
+// Benefit: Eliminates password prompts during RDP connection/login process
+polkit.addRule(function(action, subject) {
+    if ((action.id === "org.gnome.controlcenter.remote-session-helper" ||
+         action.id === "org.gnome.controlcenter.remote-login-helper") &&
+        subject.isInGroup("wheel")) {
+        return polkit.Result.YES;
+    }
+    return polkit.Result.NOT_HANDLED;
+});
+
+// RULE 3: Blanket Authorization for Active Sessions
+// Allows wheel group users with active sessions to perform any administrative action
+// Security: Requires wheel group membership + active session (no background processes)
+// Benefit: No password prompts for WiFi, Bluetooth, Flatpak operations, system settings, etc.
+// Rationale: Removes arbitrary local vs remote distinction - RDP session is as trusted as local
+polkit.addRule(function(action, subject) {
+    if (subject.active && subject.isInGroup("wheel")) {
+        return polkit.Result.YES;
+    }
+    return polkit.Result.NOT_HANDLED;
+});

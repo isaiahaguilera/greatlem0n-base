@@ -14,6 +14,10 @@ FROM ghcr.io/ublue-os/bluefin:stable
 # Fedora base image: quay.io/fedora/fedora-bootc:41
 # CentOS base images: quay.io/centos-bootc/centos-bootc:stream10
 
+## RDP Polkit Fixes
+# Copy polkit rules for RDP usability (see rule for documentation)
+COPY build_files/polkit/90-remote-desktop-permissions.rules /etc/polkit-1/rules.d/90-remote-desktop-permissions.rules
+
 ### [IM]MUTABLE /opt
 ## Some bootable images, like Fedora, have /opt symlinked to /var/opt, in order to
 ## make it mutable/writable for users. However, some packages write files to this directory,
