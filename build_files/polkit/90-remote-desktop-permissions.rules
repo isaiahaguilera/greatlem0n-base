@@ -182,6 +182,42 @@ polkit.addRule(function(action, subject) {
 });
 
 // ============================================================================
+// GVFS ADMIN FILE OPERATIONS (admin:/// in GNOME Files)
+// ============================================================================
+
+// RULE: GVFS Admin Daemon Startup
+// ACTIONS: org.gtk.vfs.file-operations-helper
+// DISCOVERED: admin:/// in GNOME Files denied over RDP
+// WHAT: Allows gvfsd-admin daemon to start for wheel users
+// LOCAL BEHAVIOR: Wheel users can start gvfsd-admin without password locally
+// WHY NEEDED: System rule checks subject.local, blocking remote sessions
+// SECURITY: Only allows daemon startup - actual file operations require separate auth
+polkit.addRule(function(action, subject) {
+    if (action.id === "org.gtk.vfs.file-operations-helper" &&
+        subject.active &&
+        subject.isInGroup("wheel")) {
+        return polkit.Result.YES;
+    }
+    return polkit.Result.NOT_HANDLED;
+});
+
+// RULE: GVFS Admin File Operations with Authentication
+// ACTIONS: org.gtk.vfs.file-operations
+// DISCOVERED: Needed for actual privileged file operations via admin:///
+// WHAT: Requires authentication for privileged file operations in remote sessions
+// LOCAL BEHAVIOR: Wheel users are prompted for password when performing file operations
+// WHY NEEDED: Mirrors local behavior by requiring auth for actual operations
+// SECURITY: AUTH_ADMIN_KEEP ensures password prompt for privileged operations
+polkit.addRule(function(action, subject) {
+    if (action.id === "org.gtk.vfs.file-operations" &&
+        subject.active &&
+        subject.isInGroup("wheel")) {
+        return polkit.Result.AUTH_ADMIN_KEEP;
+    }
+    return polkit.Result.NOT_HANDLED;
+});
+
+// ============================================================================
 // FUTURE RULES
 // ============================================================================
 // When new password prompts are encountered over RDP:
