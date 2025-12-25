@@ -18,6 +18,10 @@ FROM ghcr.io/ublue-os/bluefin:stable
 # Copy polkit rules for RDP usability (see rule for documentation)
 COPY build_files/polkit/90-remote-desktop-permissions.rules /etc/polkit-1/rules.d/90-remote-desktop-permissions.rules
 
+## RDP Udev Hardware Access
+# Copy udev rules for wheel group hardware access (see rule for documentation)
+COPY build_files/udev/90-wheel-hardware-access.rules /etc/udev/rules.d/90-wheel-hardware-access.rules
+
 ### [IM]MUTABLE /opt
 ## Some bootable images, like Fedora, have /opt symlinked to /var/opt, in order to
 ## make it mutable/writable for users. However, some packages write files to this directory,
